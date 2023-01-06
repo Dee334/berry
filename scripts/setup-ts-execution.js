@@ -1,25 +1,9 @@
-const path = require(`path`);
-const babel = require(`@babel/core`);
-const os = require(`os`);
-const root = path.dirname(__dirname);
-
-// The cache in @babel/register never clears itself and will therefore grow
-// forever causing massive slowdowns if left unchecked for a while
-// this ensures a new cache key is generated every week
-const weeksSinceUNIXEpoch = Math.floor(Date.now() / 604800000);
-
-if (!process.env.BABEL_CACHE_PATH)
-  process.env.BABEL_CACHE_PATH = path.join(os.tmpdir(), `babel`, `.babel.${babel.version}.${babel.getEnv()}.${weeksSinceUNIXEpoch}.json`);
-
-require(`@babel/register`)({
-  root,
-  extensions: [`.tsx`, `.ts`, `.js`],
-  only: [
-    p => {
-      if (p?.endsWith(`.js`))
-        return /packages(\\|\/)yarnpkg-pnp(\\|\/)sources(\\|\/)node/.test(p);
-
-      return true;
-    },
-  ],
-});
+switch (process.env.YARNPKG_TRANSPILER) {
+  case `esbuild`:
+    require(`./setup-ts-execution-esbuild.js`);
+    break;
+  default:
+  case `babel`:
+    require(`./setup-ts-execution-babel.js`);
+    break;
+}
